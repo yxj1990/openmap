@@ -1,0 +1,75 @@
+package com.openmaps.feature;
+
+import android.graphics.Canvas;
+import android.graphics.Point;
+
+import com.openmaps.Map;
+import com.openmaps.exceptions.GeometryTypeMisMatchException;
+import com.openmaps.geometry.GeoPoint;
+import com.openmaps.geometry.Geometry;
+import com.openmaps.layer.VectorLayer.VectorType;
+import com.openmaps.style.Style;
+import com.openmaps.style.symbolize.PointSymbolize;
+import com.openmaps.style.symbolize.TextSymbolize;
+
+public class PointFeature extends Feature   {
+
+	public PointFeature(Map map) {
+		super(map);
+		this.mStyle = Style.getDefaultPointStyle();
+	}
+
+	@Override
+	public void reDraw(Canvas canvas) {
+		if(this.mGeometry==null)return;
+		
+		if(this.mStyle==null)
+			this.mStyle = this.mLayer.getStyle(VectorType.POINT);
+		if(this.mStyle==null)
+			this.mStyle = Style.getDefaultPointStyle();
+		
+		Style style;
+		if(!isSelected) 
+			style = this.mStyle;
+		else
+			style = Style.getDefaultPointSelectedStyle();
+		
+		if((style.getMinScaleDenominator()!=Double.NaN) && style.getMinScaleDenominator()>mMap.getResolution()) {
+			return;
+		}
+		if((style.getMaxScaleDenominator()!=Double.NaN) && style.getMaxScaleDenominator()<mMap.getResolution()) {
+			return;
+		}
+		
+		Point p = this.mMap.transformMapPointToPixel(((GeoPoint)mGeometry).location);
+		if(style.getSymbolize()==null||style.getSymbolize().size()==0)return;
+		for(int i=0;i<style.getSymbolize().size();i++){
+			if(style.getSymbolize().get(i) instanceof TextSymbolize){
+				TextSymbolize sym = (TextSymbolize) style.getSymbolize().get(i);
+				if(sym.getMaxLevel()>mMap.getZoom()&&sym.getMinLevel()<mMap.getZoom())
+				sym.draw(canvas, p, getLabelText());
+			}else if(style.getSymbolize().get(i) instanceof PointSymbolize){
+				PointSymbolize sym = (PointSymbolize) style.getSymbolize().get(i);
+				if(sym.getMaxLevel()>mMap.getZoom()&&sym.getMinLevel()<mMap.getZoom())
+				sym.draw(canvas,p);
+			}
+		}
+	}
+
+	@Override
+	public void setGeometry(Geometry geo)throws GeometryTypeMisMatchException {
+		if(geo.getClass()!=GeoPoint.class){
+			throw(new GeometryTypeMisMatchException("the geometry does not match PointFeature"));
+		}
+		this.mGeometry = geo;
+	}
+
+	@Override
+	public Geometry getGeometry() {
+		// TODO Auto-generated method stub
+		return this.mGeometry;
+	}
+
+	
+
+}

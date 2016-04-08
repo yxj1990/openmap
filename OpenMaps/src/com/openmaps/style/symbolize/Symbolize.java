@@ -1,0 +1,37 @@
+package com.openmaps.style.symbolize;
+
+import android.graphics.Canvas;
+
+import com.openmaps.geometry.Geometry;
+
+/**
+ * 要素使用的符号
+ * @author wusj 20150318
+ */
+public  class Symbolize {
+	protected Geometry mGeometry;
+	protected int mMaxLevel=25;
+	protected int mMinLevel=0;
+
+	/**
+	 * 由符号负责要素的绘制
+	 * @param canvas 画布
+	 */
+	public void draw(Canvas canvas){
+		
+	}
+
+	public void setMaxLevel(int maxLevel){
+		mMaxLevel=maxLevel;
+	}
+	public void setMinLevel(int minLevel){
+		mMinLevel=minLevel;
+	}
+	public int getMaxLevel(){
+		return mMaxLevel;
+	}
+	public int getMinLevel(){
+		return mMinLevel;
+	}
+	
+}

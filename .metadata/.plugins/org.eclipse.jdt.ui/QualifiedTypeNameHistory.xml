@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<qualifiedTypeNameHistroy>
+<fullyQualifiedTypeName name="android.R.bool"/>
+<fullyQualifiedTypeName name="java.lang.Boolean"/>
+<fullyQualifiedTypeName name="android.graphics.Point"/>
+<fullyQualifiedTypeName name="com.openmaps.Map"/>
+<fullyQualifiedTypeName name="java.lang.Math"/>
+<fullyQualifiedTypeName name="com.openmaps.geometry.Geometry"/>
+<fullyQualifiedTypeName name="com.openmaps.geometry.GeoPoint"/>
+<fullyQualifiedTypeName name="com.openmaps.util.ParentNote"/>
+<fullyQualifiedTypeName name="com.openmaps.util.FourTree"/>
+<fullyQualifiedTypeName name="com.openmaps.geometry.GeoPolyline"/>
+<fullyQualifiedTypeName name="com.openmaps.feature.LineFeature"/>
+<fullyQualifiedTypeName name="com.openmaps.geometry.GeoPolygon"/>
+<fullyQualifiedTypeName name="com.openmaps.feature.PolygonFeature"/>
+<fullyQualifiedTypeName name="com.openmaps.geometry.Bounds"/>
+<fullyQualifiedTypeName name="com.openmaps.events.EventUtil"/>
+<fullyQualifiedTypeName name="java.util.Vector"/>
+<fullyQualifiedTypeName name="com.openmaps.feature.Feature"/>
+<fullyQualifiedTypeName name="com.openmaps.util.QuadTreeNote"/>
+<fullyQualifiedTypeName name="com.openmaps.layer.VectorLayer.VectorType"/>
+<fullyQualifiedTypeName name="android.util.Log"/>
+<fullyQualifiedTypeName name="java.lang.System"/>
+</qualifiedTypeNameHistroy>

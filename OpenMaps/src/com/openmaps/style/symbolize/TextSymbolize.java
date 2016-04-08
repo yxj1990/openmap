@@ -1,0 +1,40 @@
+package com.openmaps.style.symbolize;
+
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.Point;
+import android.graphics.Typeface;
+
+public class TextSymbolize extends PointSymbolize {
+	private int mFontSize  = 20;
+	private int mTextColor = Color.BLACK;
+	private String  mFontFamily = "Î¢ÈíÑÅºÚ";
+	private int mOffsetX=0,mOffsetY=0;
+	private Paint mPaint;
+	public TextSymbolize(){
+		this.mPaint = new Paint();
+		this.mPaint.setColor(mTextColor);
+		mPaint.setTextSize(mFontSize);
+		mPaint.setTypeface(Typeface.create(mFontFamily,Typeface.NORMAL));
+	}
+	
+	public void draw(Canvas canvas,Point p,String text){
+		if(text==null||p==null) return;
+		canvas.drawText(text,p.x+mOffsetX,p.y+mOffsetY,mPaint);
+	}
+	
+	public void setFontSize(int mFontSize) {
+		this.mFontSize = mFontSize;
+	}
+	public void setTextColor(int mTextColor) {
+		this.mTextColor = mTextColor;
+	}
+	public void setOffsetX(int mOffsetX) {
+		this.mOffsetX = mOffsetX;
+	}
+	public void setOffsetY(int mOffsetY) {
+		this.mOffsetY = mOffsetY;
+	}
+
+}

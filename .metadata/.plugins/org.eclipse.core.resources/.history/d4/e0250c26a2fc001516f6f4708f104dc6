@@ -1,0 +1,297 @@
+package com.openmaps.test.openmapstest;
+
+import java.util.Random;
+import java.util.Vector;
+
+import android.R.anim;
+import android.annotation.SuppressLint;
+import android.app.Activity;
+import android.graphics.Color;
+import android.os.Bundle;
+import android.os.Environment;
+import android.util.DisplayMetrics;
+import android.util.Log;
+import android.view.Gravity;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
+import android.widget.Button;
+import android.widget.FrameLayout;
+import android.widget.FrameLayout.LayoutParams;
+import android.widget.ZoomControls;
+
+import com.openmaps.Map;
+import com.openmaps.controls.DragControl;
+import com.openmaps.controls.DrawControl;
+import com.openmaps.controls.SelectControl;
+import com.openmaps.events.BaseEvent;
+import com.openmaps.events.EventUtil;
+import com.openmaps.events.IEventListener;
+import com.openmaps.feature.Feature;
+import com.openmaps.feature.LineFeature;
+import com.openmaps.feature.PointFeature;
+import com.openmaps.feature.PolygonFeature;
+import com.openmaps.geometry.GeoPoint;
+import com.openmaps.geometry.GeoPolygon;
+import com.openmaps.geometry.GeoPolyline;
+import com.openmaps.geometry.basetypes.Location;
+import com.openmaps.layer.Grid;
+import com.openmaps.layer.VectorLayer;
+import com.openmaps.layer.VectorLayer.VectorType;
+import com.openmaps.style.symbolize.Marker;
+import com.openmaps.style.symbolize.PointSymbolize;
+import com.openmaps.style.symbolize.Marker.MarkerType;
+import com.openmaps.style.Style;
+import com.openmaps.tile.provider.MapTileProvider;
+import com.openmaps.tile.source.FileTileSource;
+import com.openmaps.tile.source.OfflineTileSource;
+import com.openmaps.tile.source.OnlineTileSource;
+import com.openmaps.tile.source.TDTOfflineTileSource;
+import com.openmaps.tile.source.TDTSource;
+import com.openmaps.util.QuadTree;
+import com.openmaps.util.Util;
+import com.openmaps.widget.FishEye;
+
+public class OpenMapsActivity extends Activity implements IEventListener{
+	FrameLayout layout;
+    Map map;
+    VectorLayer vector;
+    SelectControl selectControl;
+    DragControl dragControl;
+    DrawControl drawControl;
+    @SuppressLint("NewApi")
+	@Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        Util.setResources(this.getResources());
+        DisplayMetrics metrics = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(metrics);
+        setContentView(R.layout.main_map);
+        layout = (FrameLayout) findViewById(R.id.frame_layout);
+        map = (Map) findViewById(R.id.base_map);
+        map.setMetrics(metrics);
+        map.setMapCenter(new Location(112, 39));
+        map.setZoom(1);
+        addTileLayer();
+        addFeatures();
+        dragControl = new DragControl(map);
+        selectControl = new SelectControl(map);
+        selectControl.setIsRectSelected(true);//框选
+        
+        map.addEventListener(EventUtil.MAP_RESOLUTION_CHANGED, this);
+        
+        drawControl   = new DrawControl(map);
+        drawControl.setDrawLayer(vector);
+        dragControl.activate();
+        drawControl.setTask(DrawControl.TASK_POINT);
+        map.addHandler(dragControl);
+        map.addHandler(selectControl);
+        map.addHandler(drawControl);
+      
+        Button btnTest           =   (Button) findViewById(R.id.btn_select);
+        Button btnDrawPoint      =   (Button) findViewById(R.id.btn_draw_point);
+        Button btnDrawLine       =   (Button) findViewById(R.id.btn_draw_line);
+        Button btnDrawPolygon    =   (Button) findViewById(R.id.btn_draw_polygon);
+        Button btnPan            =   (Button) findViewById(R.id.btn_pan);
+        btnDrawPoint.setOnClickListener(new DrawFeatureListener(0));
+        btnDrawLine.setOnClickListener(new DrawFeatureListener(1));
+        btnDrawPolygon.setOnClickListener(new DrawFeatureListener(2));
+        ZoomControls zoomControl = (ZoomControls) findViewById(R.id.zoombar);
+        zoomControl.setOnZoomInClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				map.zoomIn();
+			}
+		});
+        zoomControl.setOnZoomOutClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				map.zoomOut();
+			}
+		});
+      
+        
+     
+        
+        btnTest.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+					selectControl.activate();
+					dragControl.disActivate();
+					drawControl.disActivate();
+			}
+		});
+        
+        btnPan.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				selectControl.disActivate();
+				dragControl.activate();
+				drawControl.disActivate();
+			}
+		});
+        
+    addFishEye();
+    }
+    
+    protected void addTileLayer(){
+    		MapTileProvider provider = new MapTileProvider();
+    		String[] baseURLs = {
+    				"http://t0.tianditu.com/DataServer",
+    				"http://t1.tianditu.com/DataServer",
+    				"http://t2.tianditu.com/DataServer",
+    				"http://t3.tianditu.com/DataServer",
+    				"http://t4.tianditu.com/DataServer",
+    				"http://t5.tianditu.com/DataServer"
+    		};
+    		OnlineTileSource sourceOnline = new TDTSource("tdt_online", 1, 18, 256, baseURLs,TDTSource.TYPE_VEC_C);
+    		provider.setOnlineTileSource(sourceOnline);
+    		
+    		OfflineTileSource  sourceOffline = new TDTOfflineTileSource("tdt_offline", 1, 16, 256, 
+    				Environment.getExternalStorageDirectory().getAbsolutePath()+"/openmaps/offline/vec/",TDTSource.TYPE_VEC_C);
+    		provider.setOfflineTileSource(sourceOffline);
+    		
+    	FileTileSource sourceFile = new FileTileSource("tdt_file", 1, 18, 256, 
+    				Environment.getExternalStorageDirectory().getAbsolutePath()+"/openmaps/tilecache");
+    	provider.setFileTileSource(sourceFile);
+    		Grid layer = new Grid(this.map,"图层1",provider);
+        
+        
+        MapTileProvider provider1 = new MapTileProvider();
+        OnlineTileSource sourceOnline1 = new TDTSource("tdt_online", 1, 18, 256, baseURLs,TDTSource.TYPE_CVA_C);
+        provider1.setOnlineTileSource(sourceOnline1);
+		
+        TDTOfflineTileSource  sourceOffline1 = new TDTOfflineTileSource("tdt_offline", 1, 16, 256, 
+				Environment.getExternalStorageDirectory().getAbsolutePath()+"/openmaps/offline/vec/",TDTSource.TYPE_CVA_C);
+		provider1.setOfflineTileSource(sourceOffline1);
+		
+		FileTileSource sourceFile1 = new FileTileSource("tdt_file", 1, 18, 256, 
+				Environment.getExternalStorageDirectory().getAbsolutePath()+"/openmaps/tilecache/name/");
+		provider1.setFileTileSource(sourceFile1);
+		Grid layer1 = new Grid(this.map,"图层2",provider1);
+		map.addLayer(layer);
+		map.addLayer(layer1);
+    }
+    
+    protected void addFishEye(){
+    		FishEye fishEye = new FishEye(this, map);
+    		android.widget.FrameLayout.LayoutParams params = new LayoutParams(124, 124, Gravity.START|Gravity.BOTTOM);
+    		fishEye.setLayoutParams(params);
+    		layout.addView(fishEye);
+    }
+    
+    protected void addFeatures(){
+    	
+    	new Thread(){
+			public void run() {
+				
+				  vector = new VectorLayer(map,"图层1");
+			      vector.addAttributeKey("name");
+			      vector.setVectorType(VectorType.POINT);
+			      map.addLayer(vector);
+			      
+    		Style style = new Style();
+    		PointSymbolize sym = new PointSymbolize(Color.BLUE,6.0f);
+    		Marker mark = new Marker(30, MarkerType.CROSS);
+    		sym.setMarker(mark);
+    		style.addSymbolize(sym);
+    	    
+         //增加一个点要素
+    		Vector<Feature> vec=new Vector<Feature>();
+    	      Random random = new Random();
+    	      for(int  i=0;i<1;i++){
+	          GeoPoint point = new GeoPoint(random.nextInt(180),random.nextInt(90));
+	          PointFeature pFeature = new PointFeature(map);
+	          pFeature.setGeometry(point);
+	          pFeature.putAttribute("name", "point");
+	          pFeature.setStyle(style);
+	          vec.add(pFeature);
+	          //vector.addFeature(pFeature);
+          }
+    	      vector.addFeatures(vec);
+    	     
+	   	       vector.setQuadTreeNote(QuadTree.BuildTree(vector.getFeatures()));
+			}}.start();
+			
+			
+			
+           //增加一个线要素
+          GeoPolyline line  = new GeoPolyline();
+          line.appendPoint(new Location(42, 16));
+          line.appendPoint(new Location(93, 16));
+          line.appendPoint(new Location(93, 67));
+          line.appendPoint(new Location(42, 67));
+          LineFeature lineFeature = new LineFeature(this.map);
+          lineFeature.putAttribute("name", "line");
+          lineFeature.setGeometry(line);
+          vector.addFeature(lineFeature);
+          
+          //增加一个面要素
+          GeoPolygon polygon= new GeoPolygon();
+          Vector<Location> points = new Vector<Location>();
+          points.add(new Location(12, 16));
+          points.add(new Location(92, 16));
+          points.add(new Location(92, 37));
+          points.add(new Location(12, 37));
+          polygon.setComponents(points);
+          PolygonFeature polygonFeature = new PolygonFeature(this.map);
+          polygonFeature.setGeometry(polygon);
+          polygonFeature.putAttribute("name", "polygon");
+          vector.addFeature(polygonFeature);
+          map.addLayer(vector);
+       vector.setQuadTreeNote(QuadTree.BuildTree(vector.getFeatures()));
+    }
+
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.open_maps, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        int id = item.getItemId();
+        if (id == R.id.action_settings) {
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+    
+    class DrawFeatureListener implements View.OnClickListener{
+    		private int type;
+    		public DrawFeatureListener(int type){
+    			this.type = type;
+    		}
+		@Override
+		public void onClick(View v) {
+			drawControl.activate();
+			dragControl.disActivate();
+			selectControl.disActivate();
+			switch(type){
+			case 0:
+				drawControl.setTask(DrawControl.TASK_POINT);
+				break;
+			case 1:
+				drawControl.setTask(DrawControl.TASK_POLYLINE);
+				break;
+			case 2:
+				drawControl.setTask(DrawControl.TASK_POLYGON);
+				break;
+			}
+		}
+    	
+    }
+
+	@Override
+	public void respond(BaseEvent event) {
+		// TODO Auto-generated method stub
+		Log.e("zoom",map.getZoomLevel(false)+"");
+		Log.e("level", map.getZoom()+"");
+	}
+}
